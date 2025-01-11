@@ -1,6 +1,6 @@
 local Type, Version = "vertical-layout", 1
-local SG = LibStub and LibStub("SettingsGenerator-1.0", true)
-if not SG or SG:GetWidgetVersion(Type) >= Version then return end
+local lib = LibStub and LibStub("SettingsGenerator-1.0", true)
+if not lib or lib:GetWidgetVersion(Type) >= Version then return end
 
 local function Constructor(template, parent)
     if not parent then
@@ -16,4 +16,4 @@ local function Constructor(template, parent)
     end
 end
 
-SG:RegisterType(Type, Version, Constructor)
+lib:RegisterType(Type, Version, Constructor)

@@ -1,6 +1,6 @@
 local Type, Version = "button", 1
-local SG = LibStub and LibStub("SettingsGenerator-1.0", true)
-if not SG or SG:GetWidgetVersion(Type) >= Version then return end
+local lib = LibStub and LibStub("SettingsGenerator-1.0", true)
+if not lib or lib:GetWidgetVersion(Type) >= Version then return end
 
 local Schema = {
     click = "function",
@@ -28,4 +28,4 @@ local function Constructor(template, parent)
     layout:AddInitializer(initializer)
 end
 
-SG:RegisterType(Type, Version, Constructor)
+lib:RegisterType(Type, Version, Constructor)
