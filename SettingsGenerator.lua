@@ -110,34 +110,33 @@ do
 end
 
 do
-    local function ConstructType(template, index)
+    local function ConstructType(template)
         template = setmetatable(template, { __index = Template })
 
         local type = lib.Types[template.type]
         local parent = template:GetParent()
 
-        C:Ensures(template.name, L["TEMPLATE_FIELD_NAME_IS_REQUIRED_AT_INDEX"], parent and parent.name, index)
+        C:Ensures(template.name, L["TEMPLATE_FIELD_NAME_IS_REQUIRED_AT_INDEX"], parent and parent.name, template.__index)
         C:Ensures(template.type, L["TEMPLATE_FIELD_TYPE_IS_MISSING"], template.name)
         C:Ensures(type, L["TEMPLATE_FIELD_TYPE_IS_INVALID"], template.name, template.type)
 
         type.constructor(template, parent)
     end
 
-    local function ConstructChildTypes(template)
+    local function ConstructTypes(template)
         lib:Validate(template, lib.Schema)
+
+        template.__index = template.__index or 1
+
+        ConstructType(template)
 
         if type(template.props) == "table" then
             for index, t in ipairs(template.props) do
                 t.__parent = template
-                ConstructType(t, index)
-                ConstructChildTypes(t)
+                t.__index = template.__index .. "-" .. index
+                ConstructTypes(t)
             end
         end
-    end
-
-    local function ConstructParentType(template)
-        ConstructType(template)
-        ConstructChildTypes(template)
     end
 
     function lib:Generate(template)
@@ -146,7 +145,7 @@ do
         C:Ensures(template.name, L["TEMPLATE_FIELD_IS_REQUIRED"], 'name')
         C:Ensures(template.props, L["TEMPLATE_FIELD_IS_REQUIRED"], 'props')
 
-        ConstructParentType(template)
+        ConstructTypes(template)
 
         local topCategory = template:GetCategory()
 
