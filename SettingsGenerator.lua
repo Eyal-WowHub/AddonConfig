@@ -21,11 +21,8 @@ local Template = {}
 local L = {
     ["TYPE_ALREADY_REGISTERED"] = "the type '%s version %d' already registered.",
     ["TYPE_IS_NOT_SUPPORTED"] = "the type '%s' is not supported. the type can either be 'boolean', 'number', 'string', 'table' or 'function'.",
-    ["TEMPLATE_FIELD_IS_REQUIRED"] = "the top-level template field '%s' is required.",
-    ["TEMPLATE_FIELD_VALUE_IS_INVALID"] = "the template field '[%s].%s' has an invalid value '%s'. Expected type '%s'.",
-    ["TEMPLATE_FIELD_NAME_IS_REQUIRED_AT_INDEX"] = "the template field '[%s].props#%d.name' is required.",
-    ["TEMPLATE_FIELD_TYPE_IS_MISSING"] = "the template '[%s].type' is nil or missing.",
-    ["TEMPLATE_FIELD_TYPE_IS_INVALID"] = "the template field '[%s].type' is invalid.",
+    ["TEMPLATE_FIELD_IS_MISSING_OR_NIL"] = "the template field '[#%s].%s' is either missing or has a nil value. Expected type '%s'.",
+    ["TEMPLATE_FIELD_TYPE_HAS_INVALID_WIDGET_TYPE"] = "the template field '[\"%s\"].type' is assigned with an unknown widget type '%s'.",
 }
 
 --[[ Template APIs ]]
@@ -51,6 +48,14 @@ function Template:GetCategory()
     return self.__category
 end
 
+function Template:GetIndex()
+    return self.__index
+end
+
+function Template:GetCurrentIndex()
+    return self:GetIndex():match(".*:(%d+)") or self:GetIndex()
+end
+
 -- [[ Library APIs ]]
 
 function lib:RegisterType(type, version, ctor)
@@ -68,7 +73,7 @@ end
 
 function lib:GetWidgetVersion(type)
     C:IsString(type, 2)
-    
+
     return self.Types[type] and self.Types[type].version or 0
 end
 
@@ -105,7 +110,7 @@ do
         for propName, propType in pairs(schema) do
             local propValue = template[propName]
 
-            C:Ensures(IsValidValue(propValue, propType), L["TEMPLATE_FIELD_VALUE_IS_INVALID"], template.name, propName, tostring(propValue), propType)
+            C:Ensures(IsValidValue(propValue, propType), L["TEMPLATE_FIELD_IS_MISSING_OR_NIL"], template:GetIndex(), propName, propType)
         end
     end
 end
@@ -114,27 +119,25 @@ do
     local function ConstructType(template)
         template = setmetatable(template, { __index = Template })
 
-        local type = lib.Types[template.type]
-        local parent = template:GetParent()
+        lib:Validate(template, lib.Schema)
 
-        C:Ensures(template.name, L["TEMPLATE_FIELD_NAME_IS_REQUIRED_AT_INDEX"], parent and parent.name, template.__index)
-        C:Ensures(template.type, L["TEMPLATE_FIELD_TYPE_IS_MISSING"], template.name)
-        C:Ensures(type, L["TEMPLATE_FIELD_TYPE_IS_INVALID"], template.name, template.type)
+        local parent = template:GetParent()
+        local type = lib.Types[template.type]
+
+        C:Ensures(type, L["TEMPLATE_FIELD_TYPE_HAS_INVALID_WIDGET_TYPE"], template.name, template.type)
 
         type.constructor(template, parent)
     end
 
     local function ConstructTypes(template)
-        lib:Validate(template, lib.Schema)
-
-        template.__index = template.__index or 1
+        template.__index = template.__index or "1"
 
         ConstructType(template)
 
         if type(template.props) == "table" then
             for index, t in ipairs(template.props) do
                 t.__parent = template
-                t.__index = template.__index .. "-" .. index
+                t.__index = template.__index .. ":" .. index
                 ConstructTypes(t)
             end
         end
@@ -142,9 +145,6 @@ do
 
     function lib:Generate(template)
         C:IsTable(template, 2)
-
-        C:Ensures(template.name, L["TEMPLATE_FIELD_IS_REQUIRED"], 'name')
-        C:Ensures(template.props, L["TEMPLATE_FIELD_IS_REQUIRED"], 'props')
 
         ConstructTypes(template)
 
