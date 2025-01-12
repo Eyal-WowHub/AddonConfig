@@ -68,6 +68,7 @@ end
 
 function lib:GetWidgetVersion(type)
     C:IsString(type, 2)
+    
     return self.Types[type] and self.Types[type].version or 0
 end
 
