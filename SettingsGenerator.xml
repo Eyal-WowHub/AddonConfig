@@ -8,5 +8,6 @@
 	<!-- Widgets -->
 	<Script file="Widgets\Button.lua"/>
     <Script file="Widgets\Checkbox.lua"/>
+    <Script file="Widgets\DropDown.lua"/>
     <Script file="Widgets\Slider.lua"/>
 </Ui>
