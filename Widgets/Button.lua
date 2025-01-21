@@ -3,9 +3,10 @@ local lib = LibStub and LibStub("SettingsGenerator-1.0", true)
 if not lib or lib:GetWidgetVersion(Type) >= Version then return end
 
 local Schema = {
+    addSearchTags = "boolean?",
     click = "function",
-    tooltip = "string?",
-    addSearchTags = "boolean?"
+    disabled = "function?",
+    tooltip = "string?"
 }
 
 local function Constructor(template, parent)
