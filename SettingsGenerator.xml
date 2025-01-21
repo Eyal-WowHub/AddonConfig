@@ -7,5 +7,6 @@
 	<Script file="Widgets\VerticalLayout.lua"/>
 	<!-- Widgets -->
 	<Script file="Widgets\Button.lua"/>
+    <Script file="Widgets\Checkbox.lua"/>
     <Script file="Widgets\Slider.lua"/>
 </Ui>
