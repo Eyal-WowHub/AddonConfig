@@ -5,14 +5,15 @@ if not lib or lib:GetWidgetVersion(Type) >= Version then return end
 local unpack = unpack
 
 local Schema = {
-    var = "table",
     default = "number",
-    min = "number",
+    disabled = "function?",
+    label = "table?",
     max = "number",
-    steps = "number",
+    min = "number",
     get = "function",
     set = "function",
-    label = "table?"
+    steps = "number",
+    var = "table"
 }
 
 local function Constructor(template, parent)
@@ -21,7 +22,7 @@ local function Constructor(template, parent)
     local category = parent:GetCategory()
     local varName, varType = unpack(template.var)
 
-    local sliderSettings = Settings.RegisterProxySetting(
+    local setting = Settings.RegisterProxySetting(
         category,
         varName,
         varType,
@@ -30,17 +31,17 @@ local function Constructor(template, parent)
         template.get,
         template.set)
 
-    local sliderOptions = Settings.CreateSliderOptions(
+    local options = Settings.CreateSliderOptions(
         template.min, 
         template.max, 
         template.steps)
 
     if template.label then
         local labelType, labelFormatter = unpack(template.label)
-        sliderOptions:SetLabelFormatter(labelType, labelFormatter)
+        options:SetLabelFormatter(labelType, labelFormatter)
     end
 
-    Settings.CreateSlider(category, sliderSettings, sliderOptions)
+    Settings.CreateSlider(category, setting, options)
 end
 
 lib:RegisterType(Type, Version, Constructor)
