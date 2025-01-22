@@ -48,7 +48,7 @@ local optionsID = SG:Generate(settings)
 
 #### Simplified Template
 
-For a more concise approach, you can use the following simplified template structure, which produces the same results as the above:
+For a more concise approach, you can use the following simplified template style, which produces the same results as the above:
 
 ```lua
 local settings = {
