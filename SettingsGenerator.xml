@@ -1,13 +1,13 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 	<Script file="SettingsGenerator.lua"/>
-    <!-- DSL -->
-    <Script file="DSL\VerticalLayoutStyle.lua"/>
+    <!-- Styles -->
+    <Script file="Styles\VerticalLayoutStyle.lua"/>
 	<!-- Containers -->
-	<Script file="Widgets\VerticalLayout.lua"/>
-	<!-- Widgets -->
-	<Script file="Widgets\Button.lua"/>
-    <Script file="Widgets\Checkbox.lua"/>
-    <Script file="Widgets\DropDown.lua"/>
-    <Script file="Widgets\Slider.lua"/>
+	<Script file="Widgets\Containers\VerticalLayout.lua"/>
+	<!-- Controls -->
+	<Script file="Widgets\Controls\Button.lua"/>
+    <Script file="Widgets\Controls\Checkbox.lua"/>
+    <Script file="Widgets\Controls\DropDown.lua"/>
+    <Script file="Widgets\Controls\Slider.lua"/>
 </Ui>
