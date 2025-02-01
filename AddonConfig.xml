@@ -1,6 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
-	<Script file="SettingsGenerator.lua"/>
+	<Script file="AddonConfig.lua"/>
     <!-- Styles -->
     <Script file="Styles\VerticalLayoutStyle.lua"/>
 	<!-- Containers -->

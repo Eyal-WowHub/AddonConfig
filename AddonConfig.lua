@@ -1,20 +1,19 @@
 ---@diagnostic disable: undefined-field
-assert(LibStub, "SettingsGenerator-1.0 requires LibStub")
+assert(LibStub, "AddonConfig-1.0 requires LibStub")
 
 local C = LibStub("Contracts-1.0")
-assert(C, "SettingsGenerator-1.0 requires Contracts-1.0")
+assert(C, "AddonConfig-1.0 requires Contracts-1.0")
 
-local lib = LibStub:NewLibrary("SettingsGenerator-1.0", 0)
+local lib = LibStub:NewLibrary("AddonConfig-1.0", 0)
 if not lib then return end
 
 lib.Types = lib.Types or {}
+
 lib.Schema = lib.Schema or {
     name = "string",
     type = "string",
     props = "table?"
 }
-
-local Template = {}
 
 --[[ Localization ]]
 
@@ -26,6 +25,8 @@ local L = {
 }
 
 --[[ Template APIs ]]
+
+local Template = {}
 
 function Template:Validate(schema)
     lib:Validate(self, schema)

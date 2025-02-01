@@ -1,4 +1,4 @@
-# SettingsGenerator
+# AddonConfig
 
 A library that generates addon settings from a template.
 
@@ -7,7 +7,7 @@ A library that generates addon settings from a template.
 ### Examples:
 
 ```lua
-local SG = LibStub("SettingsGenerator-1.0")
+local Config = LibStub("AddonConfig-1.0")
 ```
 
 #### Traditional Template
@@ -43,7 +43,7 @@ local settings = {
     }
 }
 
-local optionsID = SG:Generate(settings)
+local optionsID = Config:Generate(settings)
 ```
 
 #### Simplified Template
@@ -75,7 +75,7 @@ local settings = {
     }
 }
 
-local optionsID = SG:FromVerticalLayoutStyle(settings)
+local optionsID = Config:FromVerticalLayoutStyle(settings)
 ```
 
 

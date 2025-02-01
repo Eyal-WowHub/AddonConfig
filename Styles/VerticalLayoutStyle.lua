@@ -1,4 +1,4 @@
-local lib = LibStub and LibStub("SettingsGenerator-1.0", true)
+local lib = LibStub and LibStub("AddonConfig-1.0", true)
 if not lib then return end
 
 local C = LibStub("Contracts-1.0")
