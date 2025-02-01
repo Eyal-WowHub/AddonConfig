@@ -1,13 +1,18 @@
-local Type, Version = "checkbox", 1
+local Type, Version = "slider", 1
 local lib = LibStub and LibStub("AddonConfig-1.0", true)
-if not lib or lib:GetWidgetVersion(Type) >= Version then return end
+if not lib or lib:GetControlVersion(Type) >= Version then return end
+
+local unpack = unpack
 
 local Schema = {
     default = "number",
     disabled = "function?",
+    label = "table?",
+    max = "number",
+    min = "number",
     get = "function",
     set = "function",
-    tooltip = "string?",
+    steps = "number",
     var = "table"
 }
 
@@ -26,7 +31,17 @@ local function Constructor(template, parent)
         template.get,
         template.set)
 
-	Settings.CreateCheckbox(category, setting, template.tooltip)
+    local options = Settings.CreateSliderOptions(
+        template.min, 
+        template.max, 
+        template.steps)
+
+    if template.label then
+        local labelType, labelFormatter = unpack(template.label)
+        options:SetLabelFormatter(labelType, labelFormatter)
+    end
+
+    Settings.CreateSlider(category, setting, options)
 end
 
 lib:RegisterType(Type, Version, Constructor)

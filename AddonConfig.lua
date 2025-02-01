@@ -21,7 +21,7 @@ local L = {
     ["TYPE_ALREADY_REGISTERED"] = "the type '%s version %d' already registered.",
     ["TYPE_IS_NOT_SUPPORTED"] = "the type '%s' is not supported. the type can either be 'boolean', 'number', 'string', 'table' or 'function'.",
     ["TEMPLATE_FIELD_IS_MISSING_OR_NIL"] = "the template field '[#%s].%s' is either missing or has a nil value. Expected type '%s'.",
-    ["TEMPLATE_FIELD_TYPE_HAS_UNKNOWN_WIDGET_TYPE"] = "the template field '[\"%s\"].type' is assigned with an unknown widget type '%s'.",
+    ["TEMPLATE_FIELD_TYPE_HAS_UNKNOWN_CONTROL_TYPE"] = "the template field '[\"%s\"].type' is assigned with an unknown control type '%s'.",
 }
 
 --[[ Template APIs ]]
@@ -72,7 +72,7 @@ function lib:RegisterType(type, version, ctor)
     }
 end
 
-function lib:GetWidgetVersion(type)
+function lib:GetControlVersion(type)
     C:IsString(type, 2)
 
     return self.Types[type] and self.Types[type].version or 0
@@ -125,7 +125,7 @@ do
         local parent = template:GetParent()
         local type = lib.Types[template.type]
 
-        C:Ensures(type, L["TEMPLATE_FIELD_TYPE_HAS_UNKNOWN_WIDGET_TYPE"], template.name, template.type)
+        C:Ensures(type, L["TEMPLATE_FIELD_TYPE_HAS_UNKNOWN_CONTROL_TYPE"], template.name, template.type)
 
         type.constructor(template, parent)
     end

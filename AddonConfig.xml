@@ -4,10 +4,10 @@
     <!-- Styles -->
     <Script file="Styles\VerticalLayoutStyle.lua"/>
 	<!-- Containers -->
-	<Script file="Widgets\Containers\VerticalLayout.lua"/>
+	<Script file="Controls\Containers\VerticalLayout.lua"/>
 	<!-- Controls -->
-	<Script file="Widgets\Controls\Button.lua"/>
-    <Script file="Widgets\Controls\Checkbox.lua"/>
-    <Script file="Widgets\Controls\DropDown.lua"/>
-    <Script file="Widgets\Controls\Slider.lua"/>
+	<Script file="Controls\Button.lua"/>
+    <Script file="Controls\Checkbox.lua"/>
+    <Script file="Controls\DropDown.lua"/>
+    <Script file="Controls\Slider.lua"/>
 </Ui>

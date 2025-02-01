@@ -1,6 +1,6 @@
 local Type, Version = "dropdown", 1
 local lib = LibStub and LibStub("AddonConfig-1.0", true)
-if not lib or lib:GetWidgetVersion(Type) >= Version then return end
+if not lib or lib:GetControlVersion(Type) >= Version then return end
 
 local Schema = {
     default = "number",
