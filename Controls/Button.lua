@@ -5,7 +5,6 @@ if not lib or lib:GetControlVersion(Type) >= Version then return end
 local Schema = {
     addSearchTags = "boolean?",
     click = "function",
-    disabled = "function?",
     tooltip = "string?"
 }
 

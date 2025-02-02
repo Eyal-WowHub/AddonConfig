@@ -6,35 +6,20 @@ local unpack = unpack
 
 local Schema = {
     default = "number",
-    disabled = "function?",
-    label = "table?",
-    max = "number",
-    min = "number",
     get = "function",
     set = "function",
-    steps = "number",
-    var = "table"
+    label = "table?",
+    options = "table"
 }
 
 local function Constructor(template, parent)
     template:Validate(Schema)
 
+    template.__varType = Settings.VarType.Number
+
     local category = parent:GetCategory()
-    local varName, varType = unpack(template.var)
-
-    local setting = Settings.RegisterProxySetting(
-        category,
-        varName,
-        varType,
-        template.name,
-        template.default,
-        template.get,
-        template.set)
-
-    local options = Settings.CreateSliderOptions(
-        template.min, 
-        template.max, 
-        template.steps)
+    local setting = template:RegisterControlSetting()
+    local options = Settings.CreateSliderOptions(unpack(template.options))
 
     if template.label then
         local labelType, labelFormatter = unpack(template.label)

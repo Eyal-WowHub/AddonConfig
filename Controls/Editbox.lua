@@ -1,23 +1,19 @@
-local Type, Version = "checkbox", 1
+local Type, Version = "editbox", 1
 local lib = LibStub and LibStub("AddonConfig-1.0", true)
 if not lib or lib:GetControlVersion(Type) >= Version then return end
 
 local Schema = {
-    default = "boolean",
     get = "function",
     set = "function",
-    tooltip = "string?"
+    validate = "function?"
 }
 
 local function Constructor(template, parent)
     template:Validate(Schema)
 
-    template.__varType = Settings.VarType.Boolean
+    local initializer = template:CreateControlWithOptions("AddonConfigEditboxControlTemplate", template)
 
-    local category = parent:GetCategory()
-    local setting = template:RegisterControlSetting()
-
-	Settings.CreateCheckbox(category, setting, template.tooltip)
+    layout:AddInitializer(initializer)
 end
 
 lib:RegisterType(Type, Version, Constructor)
