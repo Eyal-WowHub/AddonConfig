@@ -57,6 +57,26 @@ function Template:GetCurrentIndex()
     return self:GetIndex():match(".*:(%d+)") or self:GetIndex()
 end
 
+function Template:RegisterControlSetting()
+    local category = self:GetCategory()
+
+    return Settings.RegisterProxySetting(category, self.__varName, self.__varType, self.name, self.default, self.get, self.set)
+end
+
+function Template:CreateControl(template, tooltip)
+    return self:CreateControlWithOptions(template, nil, tooltip)
+end
+
+function Template:CreateControlWithOptions(template, options, tooltip)
+    local layout = self:GetLayout()
+    local setting = self:RegisterControlSetting()
+    local initializer = Settings.CreateControlInitializer(template, setting, options, tooltip)
+    
+    layout:AddInitializer(initializer)
+
+    return initializer
+end
+
 -- [[ Library APIs ]]
 
 function lib:RegisterType(type, version, ctor)
@@ -117,6 +137,12 @@ do
 end
 
 do
+    local function GenerateVariableName(name)
+        return (name:gsub("([A-Za-z0-9])([A-Za-z0-9]*)", function(first, rest)
+            return first:upper() .. rest:lower()
+        end):gsub("%W", ""))
+    end
+
     local function ConstructType(template)
         template = setmetatable(template, { __index = Template })
 
@@ -132,6 +158,7 @@ do
 
     local function ConstructTypes(template)
         template.__index = template.__index or "1"
+        template.__varName = template.__varName .. "_" .. GenerateVariableName(template.name)
 
         ConstructType(template)
 
@@ -139,6 +166,7 @@ do
             for index, t in ipairs(template.props) do
                 t.__parent = template
                 t.__index = template.__index .. ":" .. index
+                t.__varName = template.__varName .. "_" .. GenerateVariableName(t.name)
                 ConstructTypes(t)
             end
         end
