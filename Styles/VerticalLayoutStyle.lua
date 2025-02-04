@@ -1,7 +1,6 @@
+local Style, Version = "vertical-layout", 1
 local lib = LibStub and LibStub("AddonConfig-1.0", true)
-if not lib then return end
-
-local C = LibStub("Contracts-1.0")
+if not lib or lib:GetStyleVersion(Style) >= Version then return end
 
 --[[ Example:
 local settings = {
@@ -28,7 +27,7 @@ local settings = {
     }
 }]]
 
-local function ConvertToTraditionalStyle(template)
+local function Transformer(template)
     local topLevelName = template[1].name
 
     local dest = {
@@ -49,10 +48,4 @@ local function ConvertToTraditionalStyle(template)
     return dest
 end
 
-function lib:FromVerticalLayoutStyle(template)
-    C:IsTable(template, 2)
-
-    template = ConvertToTraditionalStyle(template)
-
-    return self:Generate(template)
-end
+lib:RegisterStyle(Style, Version, Transformer)

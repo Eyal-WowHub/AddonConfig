@@ -7,8 +7,8 @@ assert(C, "AddonConfig-1.0 requires Contracts-1.0")
 local lib = LibStub:NewLibrary("AddonConfig-1.0", 0)
 if not lib then return end
 
+lib.Styles = lib.Styles or {}
 lib.Types = lib.Types or {}
-
 lib.Schema = lib.Schema or {
     name = "string",
     type = "string",
@@ -18,7 +18,9 @@ lib.Schema = lib.Schema or {
 --[[ Localization ]]
 
 local L = {
-    ["TYPE_ALREADY_REGISTERED"] = "the type '%s version %d' already registered.",
+    ["ALREADY_REGISTERED"] = "the %s '%s version %d' already registered.",
+    ["STYLE_TYPE_IS_INVALID"] = "the style type is invalid. Expected type 'string'.",
+    ["STYLE_IS_UNKNOWN"] = "the style '%s' is unknown.",
     ["TYPE_IS_NOT_SUPPORTED"] = "the type '%s' is not supported. the type can either be 'boolean', 'number', 'string', 'table' or 'function'.",
     ["TEMPLATE_FIELD_IS_MISSING_OR_NIL"] = "the template field '[#%s].%s' is either missing or has a nil value. Expected type '%s'.",
     ["TEMPLATE_FIELD_TYPE_HAS_UNKNOWN_CONTROL_TYPE"] = "the template field '[\"%s\"].type' is assigned with an unknown control type '%s'.",
@@ -73,12 +75,31 @@ end
 
 -- [[ Library APIs ]]
 
+function lib:RegisterStyle(style, version, transformer)
+    C:IsString(style, 2)
+    C:IsNumber(version, 3)
+    C:IsFunction(transformer, 4)
+
+    C:Ensures(not self.Styles[style] or self.Styles[style].version == version, L["ALREADY_REGISTERED"], "style", style, version)
+
+    self.Styles[style] = {
+        version = version,
+        transformer = transformer
+    }
+end
+
+function lib:GetStyleVersion(style)
+    C:IsString(style, 2)
+
+    return self.Styles[style] and self.Styles[style].version or 0
+end
+
 function lib:RegisterType(type, version, ctor)
     C:IsString(type, 2)
     C:IsNumber(version, 3)
     C:IsFunction(ctor, 4)
 
-    C:Ensures(not self.Types[type] or self.Types[type].version == version, L["TYPE_ALREADY_REGISTERED"], type, version)
+    C:Ensures(not self.Types[type] or self.Types[type].version == version, L["ALREADY_REGISTERED"], "type", type, version)
 
     self.Types[type] = {
         version = version,
@@ -166,8 +187,18 @@ do
         end
     end
 
-    function lib:Generate(template)
+    function lib:Generate(template, style)
         C:IsTable(template, 2)
+
+        if style then
+            C:Ensures(type(style) == "string", L["STYLE_TYPE_IS_INVALID"])
+
+            local styleInfo = self.Styles[style]
+
+            C:Ensures(styleInfo, L["STYLE_IS_UNKNOWN"], style)
+
+            template = styleInfo.transformer(template)
+        end
 
         ConstructTypes(template)
 
