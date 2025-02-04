@@ -23,16 +23,28 @@ local function OnButtonClick(self)
     OnEnterPressed(self)
 end
 
-function AddonConfigEditboxControlMixin:DisableButton()
-    self.__disabledButton = true
+function AddonConfigEditboxControlMixin:HideButton()
     self.Button:Hide()
     self.Editobx:SetTextInsets(0, 0, 3, 3)
 end
 
+function AddonConfigEditboxControlMixin:ShowButton()
+    if not self.__disabledButton then
+        self.Button:Show()
+        self.Editobx:SetTextInsets(0, 20, 3, 3)
+    else
+        self:HideButton()
+    end
+end
+
+function AddonConfigEditboxControlMixin:DisableButton()
+    self.__disabledButton = true
+    self:HideButton()
+end
+
 function AddonConfigEditboxControlMixin:EnableButton()
     self.__disabledButton = false
-    self.Button:Show()
-    self.Editobx:SetTextInsets(0, 20, 3, 3)
+    self:ShowButton()
 end
 
 --[[ EditBox ]]
@@ -105,11 +117,12 @@ function AddonConfigEditboxControlMixin:OnLoad()
 
     editbox:SetScript("OnTextChanged", function(_, text)
         OnTextChanged(self, text)
+        self:GetSetting():SetValue(text)
     end)
 
-    editbox:SetScript("OnEnterPressed", function())
+    editbox:SetScript("OnEnterPressed", function()
         OnEnterPressed(self)
-    end
+    end)
 
     editbox:SetScript("OnEscapePressed", function()
         OnEscapePressed(self)
@@ -130,9 +143,9 @@ function AddonConfigEditboxControlMixin:OnLoad()
     button:SetText(OKAY)
     button:Hide()
 
-    button:SetScript("OnClick", function())
+    button:SetScript("OnClick", function()
         OnButtonClick(self)
-    end
+    end)
 
     self:Default()
 end
@@ -144,6 +157,7 @@ function AddonConfigEditboxControlMixin:Init(initializer)
 
     if options then
         self.Editbox:SetMaxLetters(options.maxLetters)
+        self.Editbox:SetLabel(options.label)
     end
 end
 
@@ -151,24 +165,8 @@ function AddonConfigEditboxControlMixin:OnSettingValueChanged(setting, value)
     SettingsControlMixin.OnSettingValueChanged(self, setting, value)
 end
 
-function AddonConfigEditboxControlMixin:EvaluateState()
-	SettingsListElementMixin.EvaluateState(self)
-	--[[local enabled = SettingsControlMixin.IsEnabled(self);
-
-	local initializer = self:GetElementData();
-	local options = initializer:GetOptions();
-	if options then
-		local optionData = type(options) == 'function' and options() or options;
-		local value = self:GetSetting():GetValue();
-		for index, option in ipairs(optionData) do
-			if option.disabled and option.value ~= value then
-				enabled = false;
-			end
-		end
-	end
-
-	self.Checkbox:SetEnabled(enabled);]]
-	self:DisplayEnabled(enabled)
+function AddonConfigEditboxControlMixin:SetValue(value)
+    self:SetText(value)
 end
 
 function AddonConfigEditboxControlMixin:Release()
