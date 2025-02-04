@@ -8,7 +8,6 @@ local Schema = {
     default = "number",
     get = "function",
     set = "function",
-    label = "table?",
     options = "table"
 }
 
@@ -19,10 +18,20 @@ local function Constructor(template, parent)
 
     local category = parent:GetCategory()
     local setting = template:RegisterControlSetting()
-    local options = Settings.CreateSliderOptions(unpack(template.options))
+    local options = Settings.CreateSliderOptions(
+        template.options.min,
+        template.options.max,
+        template.options.steps)
 
     if template.label then
-        local labelType, labelFormatter = unpack(template.label)
+        local labelType, labelFormatter
+
+        if type(template.label) == "table" then
+            labelType, labelFormatter = unpack(template.label)
+        else
+            labelType = template.label
+        end
+
         options:SetLabelFormatter(labelType, labelFormatter)
     end
 
