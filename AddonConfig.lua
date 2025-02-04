@@ -63,18 +63,12 @@ function Template:RegisterControlSetting()
     return Settings.RegisterProxySetting(category, self.__varName, self.__varType, self.name, self.default, self.get, self.set)
 end
 
-function Template:CreateControl(template, tooltip)
-    return self:CreateControlWithOptions(template, nil, tooltip)
-end
-
-function Template:CreateControlWithOptions(template, options, tooltip)
+function Template:InitializeControl(controlTemplate)
     local layout = self:GetLayout()
     local setting = self:RegisterControlSetting()
-    local initializer = Settings.CreateControlInitializer(template, setting, options, tooltip)
-    
-    layout:AddInitializer(initializer)
+    local initializer = Settings.CreateControlInitializer(controlTemplate, setting, self.options, self.tooltip)
 
-    return initializer
+    layout:AddInitializer(initializer)
 end
 
 -- [[ Library APIs ]]
