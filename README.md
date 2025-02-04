@@ -75,7 +75,7 @@ local settings = {
     }
 }
 
-local optionsID = Config:FromVerticalLayoutStyle(settings)
+local optionsID = Config:Generate(settings, "vertical-style")
 ```
 
 
