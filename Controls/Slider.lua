@@ -23,13 +23,15 @@ local function Constructor(template, parent)
         template.options.max,
         template.options.steps)
 
-    if template.label then
+    local label = template.options.label
+
+    if label then
         local labelType, labelFormatter
 
-        if type(template.label) == "table" then
-            labelType, labelFormatter = unpack(template.label)
+        if type(label) == "table" then
+            labelType, labelFormatter = unpack(label)
         else
-            labelType = template.label
+            labelType = label
         end
 
         options:SetLabelFormatter(labelType, labelFormatter)
