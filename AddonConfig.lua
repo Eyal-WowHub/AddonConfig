@@ -12,7 +12,8 @@ lib.Types = lib.Types or {}
 lib.Schema = lib.Schema or {
     name = "string",
     type = "string",
-    props = "table?"
+    handler = "table?",
+    props = "table?",
 }
 
 --[[ Localization ]]
@@ -61,8 +62,18 @@ end
 
 function Template:RegisterControlSetting()
     local category = self:GetCategory()
+    local parent = self:GetParent()
+    local handler = parent and parent.handler
 
-    return Settings.RegisterProxySetting(category, self.__varName, self.__varType, self.name, self.default, self.get, self.set)
+    local function get()
+        return self.get(handler)
+    end
+
+    local function set(value)
+        self.set(handler, value)
+    end
+
+    return Settings.RegisterProxySetting(category, self.__varName, self.__varType, self.name, self.default, get, set)
 end
 
 function Template:InitializeControl(controlTemplate)
@@ -173,7 +184,7 @@ do
 
     local function ConstructTypes(template)
         template.__index = template.__index or "1"
-        template.__varName = template.__varName .. "_" .. GenerateVariableName(template.name)
+        template.__varName = template.__varName or GenerateVariableName(template.name)
 
         ConstructType(template)
 
