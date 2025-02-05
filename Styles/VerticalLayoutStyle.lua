@@ -41,6 +41,7 @@ local function Transformer(template)
         table.insert(dest.props, {
             name = field.name,
             type = "vertical-layout",
+            handler = field.handler,
             props = field.layout
         })
     end
