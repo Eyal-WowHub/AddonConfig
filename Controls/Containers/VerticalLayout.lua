@@ -1,6 +1,6 @@
-local Type, Version = "vertical-layout", 1
+local Name, Version = "vertical-layout", 1
 local lib = LibStub and LibStub("AddonConfig-1.0", true)
-if not lib or lib:GetControlVersion(Type) >= Version then return end
+if not lib or lib:GetControlVersion(Name) >= Version then return end
 
 local function Constructor(template, parent)
     if not parent then
@@ -16,4 +16,4 @@ local function Constructor(template, parent)
     end
 end
 
-lib:RegisterType(Type, Version, Constructor)
+lib:RegisterControl(Name, Version, Constructor)

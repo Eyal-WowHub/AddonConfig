@@ -1,6 +1,6 @@
-local Type, Version = "slider", 1
+local Name, Version = "slider", 1
 local lib = LibStub and LibStub("AddonConfig-1.0", true)
-if not lib or lib:GetControlVersion(Type) >= Version then return end
+if not lib or lib:GetControlVersion(Name) >= Version then return end
 
 local unpack = unpack
 
@@ -40,4 +40,4 @@ local function Constructor(template, parent)
     Settings.CreateSlider(category, setting, options)
 end
 
-lib:RegisterType(Type, Version, Constructor)
+lib:RegisterControl(Name, Version, Constructor)

@@ -1,6 +1,6 @@
-local Style, Version = "vertical-layout", 1
+local Name, Version = "vertical-layout", 1
 local lib = LibStub and LibStub("AddonConfig-1.0", true)
-if not lib or lib:GetStyleVersion(Style) >= Version then return end
+if not lib or lib:GetStyleVersion(Name) >= Version then return end
 
 --[[ Example:
 local settings = {
@@ -49,4 +49,4 @@ local function Transformer(template)
     return dest
 end
 
-lib:RegisterStyle(Style, Version, Transformer)
+lib:RegisterStyle(Name, Version, Transformer)

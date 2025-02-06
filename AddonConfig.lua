@@ -8,7 +8,7 @@ local lib = LibStub:NewLibrary("AddonConfig-1.0", 0)
 if not lib then return end
 
 lib.Styles = lib.Styles or {}
-lib.Types = lib.Types or {}
+lib.Controls = lib.Controls or {}
 lib.Schema = lib.Schema or {
     name = "string",
     type = "string",
@@ -20,11 +20,10 @@ lib.Schema = lib.Schema or {
 
 local L = {
     ["ALREADY_REGISTERED"] = "the %s '%s version %d' already registered.",
-    ["STYLE_TYPE_IS_INVALID"] = "the style type is invalid. Expected type 'string'.",
     ["STYLE_IS_UNKNOWN"] = "the style '%s' is unknown.",
-    ["TYPE_IS_NOT_SUPPORTED"] = "the type '%s' is not supported. the type can either be 'boolean', 'number', 'string', 'table' or 'function'.",
-    ["TEMPLATE_FIELD_IS_MISSING_OR_NIL"] = "the template field '[#%s].%s' is either missing or has a nil value. Expected type '%s'.",
-    ["TEMPLATE_FIELD_TYPE_HAS_UNKNOWN_CONTROL_TYPE"] = "the template field '[\"%s\"].type' is assigned with an unknown control type '%s'.",
+    ["CONTROL_IS_UNKNOWN"] = "the template field '[\"%s\"].type' is assigned with an unknown control '%s'.",
+    ["SCHEMA_TYPE_IS_NOT_SUPPORTED"] = "the schema type '%s' is not supported. Supported types: 'boolean', 'number', 'string', 'table' and 'function'.",
+    ["TEMPLATE_FIELD_IS_MISSING_OR_NIL"] = "the template field '[#%s].%s' is either missing or has a nil value. Expected type '%s'."
 }
 
 --[[ Template APIs ]]
@@ -86,42 +85,52 @@ end
 
 -- [[ Library APIs ]]
 
-function lib:RegisterStyle(style, version, transformer)
-    C:IsString(style, 2)
-    C:IsNumber(version, 3)
-    C:IsFunction(transformer, 4)
-
-    C:Ensures(not self.Styles[style] or self.Styles[style].version == version, L["ALREADY_REGISTERED"], "style", style, version)
-
-    self.Styles[style] = {
-        version = version,
-        transformer = transformer
-    }
-end
-
-function lib:GetStyleVersion(style)
-    C:IsString(style, 2)
-
-    return self.Styles[style] and self.Styles[style].version or 0
-end
-
-function lib:RegisterType(type, version, ctor)
-    C:IsString(type, 2)
-    C:IsNumber(version, 3)
-    C:IsFunction(ctor, 4)
-
-    C:Ensures(not self.Types[type] or self.Types[type].version == version, L["ALREADY_REGISTERED"], "type", type, version)
-
-    self.Types[type] = {
-        version = version,
-        constructor = ctor
-    }
-end
-
-function lib:GetControlVersion(type)
-    C:IsString(type, 2)
-
-    return self.Types[type] and self.Types[type].version or 0
+do
+    local function CreateTypeInfo(kind, registry, name, version)
+        C:Ensures(not registry[name] or registry[name].version == version, L["ALREADY_REGISTERED"], kind, name, version)
+    
+        local typeInfo = {
+            version = version
+        }
+    
+        registry[name] = typeInfo
+    
+        return typeInfo
+    end
+    
+    local function GetTypeVersion(registry, name)
+        return registry[name] and registry[name].version or 0
+    end
+    
+    function lib:RegisterControl(name, version, ctor)
+        C:IsString(name, 2)
+        C:IsNumber(version, 3)
+        C:IsFunction(ctor, 4)
+    
+        local controlInfo = CreateTypeInfo("control", self.Controls, name, version)
+        controlInfo.constructor = ctor
+    end
+    
+    function lib:GetControlVersion(name)
+        C:IsString(name, 2)
+    
+        return GetTypeVersion(self.Controls, name)
+    end
+    
+    function lib:RegisterStyle(name, version, transformer)
+        C:IsString(name, 2)
+        C:IsNumber(version, 3)
+        C:IsFunction(transformer, 4)
+    
+        local styleInfo = CreateTypeInfo("style", self.Styles, name, version)
+        styleInfo.transformer = transformer
+    end
+    
+    function lib:GetStyleVersion(name)
+        C:IsString(name, 2)
+    
+        return GetTypeVersion(self.Styles, name)
+    end
 end
 
 do
@@ -139,7 +148,7 @@ do
 
         actualType = LuaType[actualType] and actualType
 
-        C:Ensures(actualType, L["TYPE_IS_NOT_SUPPORTED"], schemaType)
+        C:Ensures(actualType, L["SCHEMA_TYPE_IS_NOT_SUPPORTED"], schemaType)
 
         return actualType, isOptional
     end
@@ -169,31 +178,31 @@ do
         end):gsub("%W", ""))
     end
 
-    local function ConstructType(template)
+    local function ConstructControl(template)
         template = setmetatable(template, { __index = Template })
 
         lib:Validate(template, lib.Schema)
 
         local parent = template:GetParent()
-        local type = lib.Types[template.type]
+        local controlInfo = lib.Controls[template.type]
 
-        C:Ensures(type, L["TEMPLATE_FIELD_TYPE_HAS_UNKNOWN_CONTROL_TYPE"], template.name, template.type)
+        C:Ensures(controlInfo, L["CONTROL_IS_UNKNOWN"], template.name, template.type)
 
-        type.constructor(template, parent)
+        controlInfo.constructor(template, parent)
     end
 
-    local function ConstructTypes(template)
+    local function ConstructControls(template)
         template.__index = template.__index or "1"
         template.__varName = template.__varName or GenerateVariableName(template.name)
 
-        ConstructType(template)
+        ConstructControl(template)
 
         if type(template.props) == "table" then
             for index, t in ipairs(template.props) do
                 t.__parent = template
                 t.__index = template.__index .. ":" .. index
                 t.__varName = template.__varName .. "_" .. GenerateVariableName(t.name)
-                ConstructTypes(t)
+                ConstructControls(t)
             end
         end
     end
@@ -202,7 +211,7 @@ do
         C:IsTable(template, 2)
 
         if style then
-            C:Ensures(type(style) == "string", L["STYLE_TYPE_IS_INVALID"])
+            C:IsString(style, 3)
 
             local styleInfo = self.Styles[style]
 
@@ -211,7 +220,7 @@ do
             template = styleInfo.transformer(template)
         end
 
-        ConstructTypes(template)
+        ConstructControls(template)
 
         local topCategory = template:GetCategory()
 

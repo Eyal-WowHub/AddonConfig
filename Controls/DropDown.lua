@@ -1,6 +1,6 @@
-local Type, Version = "dropdown", 1
+local Name, Version = "dropdown", 1
 local lib = LibStub and LibStub("AddonConfig-1.0", true)
-if not lib or lib:GetControlVersion(Type) >= Version then return end
+if not lib or lib:GetControlVersion(Name) >= Version then return end
 
 local Schema = {
     default = "number",
@@ -36,4 +36,4 @@ local function Constructor(template, parent)
 	Settings.CreateDropdown(category, setting, GetOptions(template), template.tooltip)
 end
 
-lib:RegisterType(Type, Version, Constructor)
+lib:RegisterControl(Name, Version, Constructor)

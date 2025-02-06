@@ -2,7 +2,7 @@
 ..\FrameXML\UI.xsd">
 	<Script file="AddonConfig.lua"/>
     <!-- Styles -->
-    <Script file="Styles\VerticalLayoutStyle.lua"/>
+    <Script file="Styles\VerticalLayout.lua"/>
 	<!-- Containers -->
 	<Script file="Controls\Containers\VerticalLayout.lua"/>
 	<!-- Controls -->
