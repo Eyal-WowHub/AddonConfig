@@ -12,7 +12,12 @@ local function Constructor(template, parent)
     template:Validate(Schema)
 
     local layout = parent:GetLayout()
+    local handler = parent and parent.handler
     local addSearchTags = false
+    
+    local function click(...)
+        template.click(handler, ...)
+    end
 
     if template.tag then
         addSearchTags = true
@@ -21,7 +26,7 @@ local function Constructor(template, parent)
     local initializer = CreateSettingsButtonInitializer(
         template.tag,
         template.name,
-        template.click,
+        click,
         template.tooltip,
         addSearchTags)
 
