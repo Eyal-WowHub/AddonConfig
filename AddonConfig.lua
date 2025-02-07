@@ -65,11 +65,13 @@ function Template:RegisterControlSetting()
     local handler = parent and parent.handler
 
     local function get()
-        return self.get(handler)
+        local value = self.get(handler)
+        
+        return value ~= nil and value or self.default
     end
 
-    local function set(value)
-        self.set(handler, value)
+    local function set(...)
+        self.set(handler, ...)
     end
 
     return Settings.RegisterProxySetting(category, self.__varName, self.__varType, self.name, self.default, get, set)
