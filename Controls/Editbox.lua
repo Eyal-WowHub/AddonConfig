@@ -12,6 +12,10 @@ local Schema = {
 local function Constructor(template)
     template:Validate(Schema)
 
+    template.default = template.default or ""
+    template.options = template.options or {}
+    template.options.text = template.options.text or template.name
+    
     template:InitializeControl("AddonConfigEditboxControlTemplate")
 end
 
