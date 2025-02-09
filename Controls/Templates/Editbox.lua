@@ -66,6 +66,16 @@ function Control:Enable()
     self:DisplayEnabled(true)
 end
 
+function Control:SetDisabled(options)
+    local disabled = options.disabled()
+
+    if disabled then
+        self:Disable()
+    else
+        self:Enable()
+    end
+end
+
 function Control:SetLabel(value)
     if value and value ~= "" then
         self.Label:SetText(value)
@@ -80,6 +90,32 @@ function Control:Default()
     self:SetText()
     self:Enable()
     self:SetMaxLetters()
+end
+
+function Control:Initialize(options)
+    self:SetText(self.Setting:GetValue())
+
+    if options then
+        self:SetMaxLetters(options.maxLetters)
+        self:SetLabel(options.label)
+
+        self.validate = options.validate
+        
+        if options.disabled and type(options.disabled) == "function" then
+            self:SetDisabled(options)
+        
+            EventRegistry:RegisterCallback("AddonConfig.ValueChanged", self.SetDisabled, self, options)
+        end
+    end
+end
+
+function Control:Release()
+    self.Editbox:SetScript("OnEnterPressed", nil)
+    self.Editbox:SetScript("OnEscapePressed", nil)
+    self.Editbox:SetScript("OnTextChanged", nil)
+    self.Button:SetScript("OnClick", nil)
+
+    EventRegistry:UnregisterCallback("AddonConfig.ValueChanged", self.SetDisabled, self)
 end
 
 --[[ Control Implementation ]]
@@ -128,31 +164,8 @@ function AddonConfigEditboxControlMixin:Init(initializer)
 
     local control = self.Control
     local options = initializer:GetOptions()
-    
-    control:SetText(control.Setting:GetValue())
 
-    if options then
-        control:SetMaxLetters(options.maxLetters)
-        control:SetLabel(options.label)
-
-        control.validate = options.validate
-        
-        if options.disabled and type(options.disabled) == "function" then
-            local function onValueChanged()
-                local disabled = options.disabled()
-
-                if disabled then
-                    control:Disable()
-                else
-                    control:Enable()
-                end
-            end
-        
-            onValueChanged()
-        
-            EventRegistry:RegisterCallback("AddonConfig.ValueChanged", onValueChanged)
-        end
-    end
+    control:Initialize(options)
 end
 
 function AddonConfigEditboxControlMixin:OnSettingValueChanged(setting, value)
@@ -160,12 +173,6 @@ function AddonConfigEditboxControlMixin:OnSettingValueChanged(setting, value)
 end
 
 function AddonConfigEditboxControlMixin:Release()
-    local control = self.Control
-
-    control.Editbox:SetScript("OnEnterPressed", nil)
-    control.Editbox:SetScript("OnEscapePressed", nil)
-    control.Editbox:SetScript("OnTextChanged", nil)
-    control.Button:SetScript("OnClick", nil)
-
+    self.Control:Release()
     SettingsControlMixin.Release(self)
 end
