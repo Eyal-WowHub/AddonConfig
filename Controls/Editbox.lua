@@ -14,7 +14,7 @@ local function Constructor(template)
 
     template.default = template.default or ""
     template.options = template.options or {}
-    template.options.text = template.options.text or template.name
+    template.options.label = template.options.label or template.name
     template.options.validate = template.validate
     
     template:InitializeControl("AddonConfigEditboxControlTemplate")
