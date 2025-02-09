@@ -33,12 +33,8 @@ function Control:HideButton()
 end
 
 function Control:ShowButton()
-    if not self.__disabledButton then
-        self.Button:Show()
-        self.Editbox:SetTextInsets(0, 20, 3, 3)
-    else
-        self:HideButton()
-    end
+    self.Button:Show()
+    self.Editbox:SetTextInsets(0, 20, 3, 3)
 end
 
 function Control:SetText(value)
