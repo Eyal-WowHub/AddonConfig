@@ -26,20 +26,26 @@ local function OnEscapePressed(self)
     self.Editbox:ClearFocus()
 end
 
-local function OnTextChanged(self)
-    local text = self.Editbox:GetText()
-    if tostring(text) ~= tostring(self.__lastText) then
-        self.__lastText = text
-        self:GetSetting():SetValue(text)
-        ShowButton(self)
-    end
-end
-
 local function SetText(self, value)
     self.__lastText = value or ""
     self.Editbox:SetText(value or "")
     self.Editbox:SetCursorPosition(0)
     HideButton(self)
+end
+
+local function OnTextChanged(self)
+    local text = self.Editbox:GetText()
+    if tostring(text) ~= tostring(self.__lastText) then
+        if self.__validate and type(self.__validate) == "function" then
+            if not self.__validate(text) then
+                SetText(self, self.__lastText)
+                return
+            end
+        end
+        self.__lastText = text
+        self:GetSetting():SetValue(text)
+        ShowButton(self)
+    end
 end
 
 local function SetMaxLetters(self, value)
@@ -122,6 +128,8 @@ function AddonConfigEditboxControlMixin:Init(initializer)
     if options then
         SetMaxLetters(self, options.maxLetters)
         SetLabel(self, options.text)
+
+        self.__validate = options.validate
         
         if options.disabled and type(options.disabled) == "function" then
             local function onValueChanged()
