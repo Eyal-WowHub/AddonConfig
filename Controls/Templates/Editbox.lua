@@ -14,13 +14,13 @@ end
 
 local function OnTextChanged(self)
     local value = self.Editbox:GetText()
-    if tostring(value) ~= tostring(self.lastText) then
-        if self.validate and type(self.validate) == "function" then
-            if not self.validate(value) then
-                self:SetText(self.lastText)
-                return
-            end
+    if self.validate and type(self.validate) == "function" then
+        if not self.validate(value) then
+            self:SetText(self.lastText)
+            return
         end
+    end
+    if tostring(value) ~= tostring(self.lastText) then
         self.lastText = value
         self.Setting:SetValue(value)
         self:ShowButton()
@@ -53,13 +53,13 @@ function Control:Disable()
     self.Editbox:EnableMouse(false)
     self.Editbox:ClearFocus()
     self.Editbox:SetTextColor(0.5, 0.5, 0.5)
-    self:DisplayEnabled(false)
+    self.Context:DisplayEnabled(false)
 end
 
 function Control:Enable()
     self.Editbox:EnableMouse(true)
     self.Editbox:SetTextColor(1, 1, 1)
-    self:DisplayEnabled(true)
+    self.Context:DisplayEnabled(true)
 end
 
 function Control:SetDisabled(options)
@@ -122,7 +122,7 @@ function AddonConfigEditboxControlMixin:OnLoad()
     SettingsControlMixin.OnLoad(self)
 
     self.Control = setmetatable({}, { __index = Control })
-    self.Control.Setting = self:GetSetting()
+    self.Control.Context = self
     self.Control.Label = self.Text
 
     self.Tooltip:ClearAllPoints()
@@ -159,6 +159,8 @@ function AddonConfigEditboxControlMixin:Init(initializer)
     SettingsControlMixin.Init(self, initializer)
 
     local control = self.Control
+    control.Setting = self:GetSetting()
+
     local options = initializer:GetOptions()
 
     control:Initialize(options)
