@@ -26,7 +26,7 @@ local L = {
     ["TEMPLATE_FIELD_IS_MISSING_OR_NIL"] = "the template field '[#%s].%s' is either missing or has a nil value. Expected type '%s'."
 }
 
---[[ Template APIs ]]
+--[[ Template API ]]
 
 local Template = {}
 
@@ -115,7 +115,7 @@ function Template:InitializeControl(controlTemplate)
     layout:AddInitializer(initializer)
 end
 
--- [[ Library APIs ]]
+-- [[ Library API ]]
 
 do
     local function CreateTypeInfo(kind, registry, name, version)
