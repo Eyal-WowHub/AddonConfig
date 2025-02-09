@@ -12,12 +12,10 @@ local Schema = {
 local function Constructor(template, parent)
     template:Validate(Schema)
 
-    template.__varType = Settings.VarType.Boolean
-
     local category = parent:GetCategory()
     local setting = template:RegisterControlSetting()
 
-	Settings.CreateCheckbox(category, setting, template.tooltip)
+    Settings.CreateCheckbox(category, setting, template.tooltip)
 end
 
 lib:RegisterControl(Name, Version, Constructor)

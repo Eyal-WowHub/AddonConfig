@@ -28,8 +28,6 @@ end
 local function Constructor(template, parent)
     template:Validate(Schema)
 
-    template.__varType = Settings.VarType.Number
-
     local category = parent:GetCategory()
     local setting = template:RegisterControlSetting()
 
