@@ -13,16 +13,16 @@ local function OnEscapePressed(self)
 end
 
 local function OnTextChanged(self)
-    local text = self.Editbox:GetText()
-    if tostring(text) ~= tostring(self.lastText) then
+    local value = self.Editbox:GetText()
+    if tostring(value) ~= tostring(self.lastText) then
         if self.validate and type(self.validate) == "function" then
-            if not self.validate(text) then
+            if not self.validate(value) then
                 self:SetText(self.lastText)
                 return
             end
         end
-        self.lastText = text
-        self.Setting:SetValue(text)
+        self.lastText = value
+        self.Setting:SetValue(value)
         self:ShowButton()
     end
 end
