@@ -63,10 +63,19 @@ function Template:RegisterControlSetting()
     local category = self:GetCategory()
     local parent = self:GetParent()
     local handler = parent and parent.handler
+    local defaultType = type(self.default)
+
+    if defaultType == "string" then
+        self.__varType = Settings.VarType.String
+    elseif defaultType == "number" then
+        self.__varType = Settings.VarType.Number
+    elseif defaultType == "boolean" then
+        self.__varType = Settings.VarType.Boolean
+    end
 
     local function get()
         local value = self.get(handler)
-        
+
         return value ~= nil and value or self.default
     end
 
@@ -74,7 +83,28 @@ function Template:RegisterControlSetting()
         self.set(handler, ...)
     end
 
-    return Settings.RegisterProxySetting(category, self.__varName, self.__varType, self.name, self.default, get, set)
+    local hasOptions = self.options and type(self.options) == "table"
+    
+    if hasOptions then
+        local hasDisabledFunc = self.disabled and type(self.disabled) == "function"
+
+        if hasDisabledFunc then
+            self.options.disabled = function()
+                return self.disabled(handler)
+            end
+        end
+    end
+
+    local setting = Settings.RegisterProxySetting(category, self.__varName, self.__varType, self.name, self.default, get, set)
+
+    Settings.SetOnValueChangedCallback(setting.variable, function(_, setting, value)
+        -- NOTE: This event notifies controls when a setting's value changes.  
+        --  Any control listening to this event can respond accordingly.  
+        --  For example, a textbox may enable or disable itself based on the state of a checkbox. 
+        EventRegistry:TriggerEvent("AddonConfig.ValueChanged", setting, value)
+	end)
+
+    return setting
 end
 
 function Template:InitializeControl(controlTemplate)
@@ -202,6 +232,8 @@ do
         if type(template.props) == "table" then
             for index, t in ipairs(template.props) do
                 t.__parent = template
+                t.__category = template.__category
+                t.__layout = template.__layout
                 t.__index = template.__index .. ":" .. index
                 t.__varName = template.__varName .. "_" .. GenerateVariableName(t.name)
                 ConstructControls(t)
