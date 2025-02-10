@@ -9,13 +9,13 @@ local Schema = {
     tooltip = "string?"
 }
 
-local function Constructor(template, parent)
+local function Constructor(template)
     template:Validate(Schema)
 
-    local category = parent:GetCategory()
+    local parent = template:GetParentInfo()
     local setting = template:RegisterControlSetting()
 
-    Settings.CreateCheckbox(category, setting, template.tooltip)
+    Settings.CreateCheckbox(parent.category, setting, template.tooltip)
 end
 
 lib:RegisterControl(Name, Version, Constructor)

@@ -25,13 +25,13 @@ local function GetOptions(template)
     return container:GetData()
 end
 
-local function Constructor(template, parent)
+local function Constructor(template)
     template:Validate(Schema)
 
-    local category = parent:GetCategory()
+    local parent = template:GetParentInfo()
     local setting = template:RegisterControlSetting()
 
-	Settings.CreateDropdown(category, setting, GetOptions(template), template.tooltip)
+	Settings.CreateDropdown(parent.category, setting, GetOptions(template), template.tooltip)
 end
 
 lib:RegisterControl(Name, Version, Constructor)

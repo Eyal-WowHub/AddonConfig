@@ -34,21 +34,31 @@ function Template:Validate(schema)
     lib:Validate(self, schema)
 end
 
-function Template:RegisterCategory(category, layout)
+function Template:SetCategory(category, layout)
     self.__category = category
     self.__layout = layout
 end
 
-function Template:GetParent()
-    return self.__parent
-end
+do
+    local ParentInfo = {}
 
-function Template:GetLayout()
-    return self.__layout
-end
+    -- NOTE: If you call `GetParentInfo` outside a closure and need to use its properties inside the closure, 
+    --       store a reference to them beforehand. Otherwise, the closure may execute later, and the original 
+    --       values might no longer be accessible.
 
-function Template:GetCategory()
-    return self.__category
+    function Template:GetParentInfo()
+        local parent = self.__parent
+
+        if parent then
+            ParentInfo.template = parent
+            ParentInfo.category = parent.__category
+            ParentInfo.layout = parent.__layout
+            ParentInfo.handler = parent.handler
+            return ParentInfo
+        end
+
+        return nil
+    end
 end
 
 function Template:GetIndex()
@@ -60,9 +70,9 @@ function Template:GetCurrentIndex()
 end
 
 function Template:RegisterControlSetting()
-    local category = self:GetCategory()
-    local parent = self:GetParent()
-    local handler = parent and parent.handler
+    local parent = self:GetParentInfo()
+    local handler = parent.handler
+    
     local defaultType = type(self.default)
 
     if defaultType == "string" then
@@ -95,7 +105,7 @@ function Template:RegisterControlSetting()
         end
     end
 
-    local setting = Settings.RegisterProxySetting(category, self.__varName, self.__varType, self.name, self.default, get, set)
+    local setting = Settings.RegisterProxySetting(parent.category, self.__varName, self.__varType, self.name, self.default, get, set)
 
     Settings.SetOnValueChangedCallback(setting.variable, function(_, setting, value)
         -- NOTE: This event notifies controls when a setting's value changes.  
@@ -108,11 +118,11 @@ function Template:RegisterControlSetting()
 end
 
 function Template:InitializeControl(controlTemplate)
-    local layout = self:GetLayout()
+    local parent = self:GetParentInfo()
     local setting = self:RegisterControlSetting()
     local initializer = Settings.CreateControlInitializer(controlTemplate, setting, self.options, self.tooltip)
 
-    layout:AddInitializer(initializer)
+    parent.layout:AddInitializer(initializer)
 end
 
 -- [[ Library API ]]
@@ -215,12 +225,11 @@ do
 
         lib:Validate(template, lib.Schema)
 
-        local parent = template:GetParent()
         local controlInfo = lib.Controls[template.type]
 
         C:Ensures(controlInfo, L["CONTROL_IS_UNKNOWN"], template.name, template.type)
 
-        controlInfo.constructor(template, parent)
+        controlInfo.constructor(template)
     end
 
     local function ConstructControls(template)
@@ -232,8 +241,6 @@ do
         if type(template.props) == "table" then
             for index, t in ipairs(template.props) do
                 t.__parent = template
-                t.__category = template.__category
-                t.__layout = template.__layout
                 t.__index = template.__index .. ":" .. index
                 t.__varName = template.__varName .. "_" .. GenerateVariableName(t.name)
                 ConstructControls(t)
@@ -256,8 +263,8 @@ do
 
         ConstructControls(template)
 
-        local topCategory = template:GetCategory()
+        local root = template.__category
 
-        return topCategory:GetID()
+        return root:GetID()
     end
 end

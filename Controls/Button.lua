@@ -8,16 +8,17 @@ local Schema = {
     tooltip = "string?"
 }
 
-local function Constructor(template, parent)
+local function Constructor(template)
     template:Validate(Schema)
 
-    local layout = parent:GetLayout()
-    local handler = parent and parent.handler
-    local addSearchTags = false
-    
+    local parent = template:GetParentInfo()
+    local handler = parent.handler
+
     local function click(...)
         template.click(handler, ...)
     end
+
+    local addSearchTags = false
 
     if template.tag then
         addSearchTags = true
@@ -30,7 +31,7 @@ local function Constructor(template, parent)
         template.tooltip,
         addSearchTags)
 
-    layout:AddInitializer(initializer)
+    parent.layout:AddInitializer(initializer)
 end
 
 lib:RegisterControl(Name, Version, Constructor)
