@@ -4,12 +4,12 @@ local Control = {}
 
 local function OnEnterPressed(self)
     PlaySound(856) -- SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON
-    self.Editbox:ClearFocus()
+    self:ClearFocus()
     self:HideButton()
 end
 
 local function OnEscapePressed(self)
-    self.Editbox:ClearFocus()
+    self:ClearFocus()
 end
 
 local function OnTextChanged(self)
@@ -17,6 +17,7 @@ local function OnTextChanged(self)
     if self.validate and type(self.validate) == "function" then
         if not self.validate(value) then
             self:SetText(self.lastText)
+            self:ClearFocus()
             return
         end
     end
@@ -25,6 +26,10 @@ local function OnTextChanged(self)
         self.Setting:SetValue(value)
         self:ShowButton()
     end
+end
+
+function Control:ClearFocus()
+    self.Editbox:ClearFocus()
 end
 
 function Control:HideButton()
@@ -91,6 +96,11 @@ end
 function Control:Initialize(options)
     self:SetText(self.Setting:GetValue())
 
+    self.Editbox:SetScript("OnTextChanged", self.OnTextChanged)
+    self.Editbox:SetScript("OnEnterPressed", self.OnEnterPressed)
+    self.Editbox:SetScript("OnEscapePressed", self.OnEscapePressed)
+    self.Button:SetScript("OnClick", self.OnClick)
+
     if options then
         self:SetMaxLetters(options.maxLetters)
         self:SetLabel(options.label)
@@ -106,9 +116,9 @@ function Control:Initialize(options)
 end
 
 function Control:Release()
+    self.Editbox:SetScript("OnTextChanged", nil)
     self.Editbox:SetScript("OnEnterPressed", nil)
     self.Editbox:SetScript("OnEscapePressed", nil)
-    self.Editbox:SetScript("OnTextChanged", nil)
     self.Button:SetScript("OnClick", nil)
 
     EventRegistry:UnregisterCallback("AddonConfig.ValueChanged", self.SetDisabled, self)
@@ -125,12 +135,6 @@ function AddonConfigEditboxControlMixin:OnLoad()
     self.Control.Context = self
     self.Control.Label = self.Text
 
-    self.Tooltip:ClearAllPoints()
-    self.Tooltip:Hide()
-
-    self.Tooltip.HoverBackground:ClearAllPoints()
-    self.Tooltip.HoverBackground:Hide()
-
     local editbox = CreateFrame("EditBox", nil, self, "InputBoxTemplate")
     self.Control.Editbox = editbox
     editbox:SetAutoFocus(false)
@@ -139,9 +143,6 @@ function AddonConfigEditboxControlMixin:OnLoad()
     editbox:SetPoint("CENTER", self, "CENTER", 27, 0)
     editbox:SetWidth(200)
     editbox:SetHeight(44)
-    editbox:SetScript("OnTextChanged", function(_) OnTextChanged(self.Control) end)
-    editbox:SetScript("OnEnterPressed", function(_) OnEnterPressed(self.Control) end)
-    editbox:SetScript("OnEscapePressed", function(_) OnEscapePressed(self.Control) end)
 
     local button = CreateFrame("Button", nil, editbox, "UIPanelButtonTemplate")
     self.Control.Button = button
@@ -150,7 +151,17 @@ function AddonConfigEditboxControlMixin:OnLoad()
     button:SetPoint("RIGHT", -2, 0)
     button:SetText(OKAY)
     button:Hide()
-    button:SetScript("OnClick", function(_) OnEnterPressed(self.Control) end)
+
+    self.Control.OnTextChanged = function() OnTextChanged(self.Control) end
+    self.Control.OnEnterPressed = function() OnEnterPressed(self.Control) end
+    self.Control.OnEscapePressed = function() OnEscapePressed(self.Control) end
+    self.Control.OnClick = function() OnEnterPressed(self.Control) end
+
+    self.Tooltip:ClearAllPoints()
+    self.Tooltip:Hide()
+
+    self.Tooltip.HoverBackground:ClearAllPoints()
+    self.Tooltip.HoverBackground:Hide()
 
     self.Control:Default()
 end
