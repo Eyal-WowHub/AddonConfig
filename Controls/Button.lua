@@ -3,9 +3,9 @@ local lib = LibStub and LibStub("AddonConfig-1.0", true)
 if not lib or lib:GetControlVersion(Name) >= Version then return end
 
 local Schema = {
-    addSearchTags = "boolean?",
     click = "function",
-    tooltip = "string?"
+    tooltip = "string?",
+    options = "table?",
 }
 
 local function Constructor(template)
@@ -13,19 +13,21 @@ local function Constructor(template)
 
     local parent = template:GetParentInfo()
     local handler = parent.handler
+    local label = ""
+    local addSearchTags = false
+    local options = template.options
+
+    if options then
+        label = options.label or ""
+        addSearchTags = options.addSearchTags
+    end
 
     local function click(...)
         template.click(handler, ...)
     end
 
-    local addSearchTags = false
-
-    if template.tag then
-        addSearchTags = true
-    end
-
     local initializer = CreateSettingsButtonInitializer(
-        template.tag,
+        label,
         template.name,
         click,
         template.tooltip,
