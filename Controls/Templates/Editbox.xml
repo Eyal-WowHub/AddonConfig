@@ -2,7 +2,7 @@
 ..\Blizzard_SharedXML\UI.xsd">
 	<Script file="Editbox.lua"/>
     <Frame name="AddonConfigEditboxControlTemplate" inherits="SettingsListElementTemplate" mixin="AddonConfigEditboxControlMixin" virtual="true">
-        <Size x="200" y="26"/>
+        <Size x="280" y="26"/>
         <Scripts>
 			<OnLoad method="OnLoad"/>
 		</Scripts>
