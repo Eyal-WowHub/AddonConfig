@@ -45,7 +45,7 @@ do
     -- NOTE: If you call `GetParentInfo` outside a closure and need to use its properties inside the closure, 
     --       store a reference to them beforehand. Otherwise, the closure may execute later, and the original 
     --       values might no longer be accessible.
-
+    
     function Template:GetParentInfo()
         local parent = self.__parent
 
@@ -109,8 +109,8 @@ function Template:RegisterControlSetting()
 
     Settings.SetOnValueChangedCallback(setting.variable, function(_, setting, value)
         -- NOTE: This event notifies controls when a setting's value changes.  
-        --  Any control listening to this event can respond accordingly.  
-        --  For example, a textbox may enable or disable itself based on the state of a checkbox. 
+        --       Any control listening to this event can respond accordingly.  
+        --       For example, a textbox may enable or disable itself based on the state of a checkbox. 
         EventRegistry:TriggerEvent("AddonConfig.ValueChanged", setting, value)
 	end)
 
