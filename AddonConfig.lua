@@ -13,7 +13,7 @@ lib.Schema = lib.Schema or {
     name = "string",
     type = "string",
     handler = "table?",
-    props = "table?",
+    props = {"table?", "function?"},
 }
 
 --[[ Localization ]]
@@ -23,7 +23,7 @@ local L = {
     ["STYLE_IS_UNKNOWN"] = "the style '%s' is unknown.",
     ["CONTROL_IS_UNKNOWN"] = "the template field '[\"%s\"].type' is assigned with an unknown control '%s'.",
     ["SCHEMA_TYPE_IS_NOT_SUPPORTED"] = "the schema type '%s' is not supported. Supported types: 'boolean', 'number', 'string', 'table' and 'function'.",
-    ["TEMPLATE_FIELD_IS_MISSING_OR_NIL"] = "the template field '[#%s].%s' is either missing or has a nil value. Expected type '%s'."
+    ["TEMPLATE_FIELD_IS_MISSING_OR_NIL"] = "the template field '[#%s].%s' is either missing or has a nil value. Expected type(s) '%s'."
 }
 
 --[[ Template API ]]
@@ -195,10 +195,24 @@ do
         return actualType, isOptional
     end
 
-    local function IsValidValue(propValue, schemaType)
+    local function IsValueMatchType(propValue, schemaType)
         local actualType, isOptional = GetSchemaType(schemaType)
 
         return isOptional and propValue == nil or type(propValue) == actualType
+    end
+
+    local function IsValueMatchTypes(propValue, schemaType)
+        if type(schemaType) == "table" then
+            for _, schemaType in pairs(schemaType) do
+                if IsValueMatchType(propValue, schemaType) then
+                    return true
+                end
+            end
+        elseif type(schemaType) == "string" then
+            return IsValueMatchType(propValue, schemaType)
+        end
+
+        return false
     end
 
     function lib:Validate(template, schema)
@@ -208,7 +222,7 @@ do
         for propName, propType in pairs(schema) do
             local propValue = template[propName]
 
-            C:Ensures(IsValidValue(propValue, propType), L["TEMPLATE_FIELD_IS_MISSING_OR_NIL"], template:GetIndex(), propName, propType)
+            C:Ensures(IsValueMatchTypes(propValue, propType), L["TEMPLATE_FIELD_IS_MISSING_OR_NIL"], template:GetIndex(), propName, propType)
         end
     end
 end
@@ -240,8 +254,14 @@ do
 
         ConstructControl(template)
 
-        if type(template.props) == "table" then
-            for index, t in ipairs(template.props) do
+        local props = template.props
+
+        if type(props) == "function" then
+            props = props({})
+        end
+
+        if type(props) == "table" then
+            for index, t in ipairs(props) do
                 t.__parent = template
                 t.__index = template.__index .. ":" .. index
                 t.__varName = template.__varName .. "_" .. GenerateVariableName(t.name)
