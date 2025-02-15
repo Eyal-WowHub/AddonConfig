@@ -69,18 +69,28 @@ function Template:GetCurrentIndex()
     return self:GetIndex():match(".*:(%d+)") or self:GetIndex()
 end
 
+function Template:SetVariableTypeByValue(value)
+    local valueType = type(value)
+
+    if valueType == "string" then
+        self.__varType = Settings.VarType.String
+    elseif valueType == "number" then
+        self.__varType = Settings.VarType.Number
+    elseif valueType == "boolean" then
+        self.__varType = Settings.VarType.Boolean
+    end
+end
+
+function Template:HasVariableType()
+    return self.__varType ~= nil
+end
+
 function Template:RegisterControlSetting()
     local parent = self:GetParentInfo()
     local handler = parent.handler
-    
-    local defaultType = type(self.default)
 
-    if defaultType == "string" then
-        self.__varType = Settings.VarType.String
-    elseif defaultType == "number" then
-        self.__varType = Settings.VarType.Number
-    elseif defaultType == "boolean" then
-        self.__varType = Settings.VarType.Boolean
+    if not self:HasVariableType() then
+        self:SetVariableTypeByValue(self.default)
     end
 
     local function get()
