@@ -223,8 +223,10 @@ do
     local function ConstructControl(template)
         template = setmetatable(template, { __index = Template })
 
-        lib:Validate(template, lib.Schema)
-
+        if template.type ~= "spacer" then
+            lib:Validate(template, lib.Schema)
+        end
+        
         local controlInfo = lib.Controls[template.type]
 
         C:Ensures(controlInfo, L["CONTROL_IS_UNKNOWN"], template.name, template.type)
