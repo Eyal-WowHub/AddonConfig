@@ -12,5 +12,6 @@
     <Script file="Controls\Checkbox.lua"/>
     <Script file="Controls\DropDown.lua"/>
     <Script file="Controls\Editbox.lua"/>
+    <Script file="Controls\Header.lua"/>
     <Script file="Controls\Slider.lua"/>
 </Ui>
