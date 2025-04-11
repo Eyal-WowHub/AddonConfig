@@ -34,11 +34,10 @@ end
 local function Constructor(template)
     template:Validate(Schema)
 
-    local parent = template:GetParentInfo()
     local options = GetOptions(template)
     local setting = template:RegisterControlSetting()
 
-	Settings.CreateDropdown(parent.category, setting, options, template.tooltip)
+	Settings.CreateDropdown(template.__category, setting, options, template.tooltip)
 end
 
 lib:RegisterControl(Name, Version, Constructor)

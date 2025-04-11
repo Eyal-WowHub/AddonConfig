@@ -3,16 +3,14 @@ local lib = LibStub and LibStub("AddonConfig-1.0", true)
 if not lib or lib:GetControlVersion(Name) >= Version then return end
 
 local function Constructor(template)
-    local parent = template:GetParentInfo()
-
-    if not parent then
+    if not template.__parent then
         local category = Settings.RegisterVerticalLayoutCategory(template.name)
 
         template:SetCategory(category)
 
         Settings.RegisterAddOnCategory(category)
     else
-        local subCategory, layout = Settings.RegisterVerticalLayoutSubcategory(parent.category, template.name)
+        local subCategory, layout = Settings.RegisterVerticalLayoutSubcategory(template.__category, template.name)
 
         template:SetCategory(subCategory, layout)
     end

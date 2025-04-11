@@ -13,7 +13,8 @@ lib.Schema = lib.Schema or {
     name = "string",
     type = "string",
     handler = "table?",
-    props = {"table?", "function?"},
+    props = "table?",
+    init = "function?"
 }
 
 --[[ Localization ]]
@@ -23,7 +24,8 @@ local L = {
     ["STYLE_IS_UNKNOWN"] = "the style '%s' is unknown.",
     ["CONTROL_IS_UNKNOWN"] = "the template field '[\"%s\"].type' is assigned with an unknown control '%s'.",
     ["SCHEMA_TYPE_IS_NOT_SUPPORTED"] = "the schema type '%s' is not supported. Supported types: 'boolean', 'number', 'string', 'table' and 'function'.",
-    ["TEMPLATE_FIELD_IS_MISSING_OR_NIL"] = "the template field '[#%s].%s' is either missing or has a nil value. Expected type(s) '%s'."
+    ["TEMPLATE_FIELD_IS_MISSING_OR_NIL"] = "the template field '[#%s].%s' is either missing or has a nil value. Expected type(s) '%s'.",
+    ["TEMPLATE_FIELD_IS_INVALID"] = "the field '%s' of '%s' is invalid.",
 }
 
 --[[ Template API ]]
@@ -31,45 +33,57 @@ local L = {
 local Template = {}
 
 function Template:Validate(schema)
+    C:IsTable(schema, 2)
+
     lib:Validate(self, schema)
 end
 
 function Template:SetCategory(category, layout)
+    C:IsTable(category, 2)
+
     self.__category = category
     self.__layout = layout
 end
 
 do
-    local ParentInfo = {}
+    local varIndex = 1
 
-    -- NOTE: If you call `GetParentInfo` outside a closure and need to use its properties inside the closure, 
-    --       store a reference to them beforehand. Otherwise, the closure may execute later, and the original 
-    --       values might no longer be accessible.
-    
-    function Template:GetParentInfo()
-        local parent = self.__parent
+    local function GenerateVariableName(name)
+        return (name:gsub("([A-Za-z0-9])([A-Za-z0-9]*)", function(first, rest)
+            return first:upper() .. rest:lower()
+        end):gsub("%W", ""))
+    end
 
-        if parent then
-            ParentInfo.template = parent
-            ParentInfo.category = parent.__category
-            ParentInfo.layout = parent.__layout
-            ParentInfo.handler = parent.handler
-            return ParentInfo
-        end
+    function Template:SetParentInfo()
+        varIndex = varIndex + 1
 
-        return nil
+        self.__index = self.__index or "1"
+        self.__varName = self.__varName or GenerateVariableName(self.name) .. varIndex
+        self.__handler = self.__handler or self.handler
+    end
+
+    function Template:SetChildInfo(index, child)
+        C:IsNumber(index, 2)
+        C:IsTable(child, 3)
+
+        varIndex = varIndex + 1
+
+        child.__parent = self
+        child.__category = self.__category
+        child.__layout = self.__layout
+        child.__index = self.__index .. ":" .. index
+        child.__varName = self.__varName .. "_" .. GenerateVariableName(child.name) .. varIndex
+        child.__handler = self.__handler
     end
 end
 
-function Template:GetIndex()
-    return self.__index
-end
-
 function Template:GetCurrentIndex()
-    return self:GetIndex():match(".*:(%d+)") or self:GetIndex()
+    return self.__index:match(".*:(%d+)") or self.__index
 end
 
 function Template:SetVariableTypeByValue(value)
+    C:Requires(value, 2, "string", "number", "boolean")
+
     local valueType = type(value)
 
     if valueType == "string" then
@@ -86,36 +100,35 @@ function Template:HasVariableType()
 end
 
 function Template:RegisterControlSetting()
-    local parent = self:GetParentInfo()
-    local handler = parent.handler
-
     if not self:HasVariableType() then
         self:SetVariableTypeByValue(self.default)
     end
 
     local function get()
-        local value = self.get(handler)
+        local value = self.get(self.__handler)
 
         return value ~= nil and value or self.default
     end
 
     local function set(...)
-        self.set(handler, ...)
+        self.set(self.__handler, ...)
     end
 
     local hasOptions = self.options and type(self.options) == "table"
-    
+
     if hasOptions then
         local hasDisabledFunc = self.disabled and type(self.disabled) == "function"
 
         if hasDisabledFunc then
             self.options.disabled = function()
-                return self.disabled(handler)
+                return self.disabled(self.__handler)
             end
         end
     end
 
-    local setting = Settings.RegisterProxySetting(parent.category, self.__varName, self.__varType, self.name, self.default, get, set)
+    C:Ensures(type(self.__category) == "table", L["TEMPLATE_FIELD_IS_INVALID"], "__category", self.name)
+
+    local setting = Settings.RegisterProxySetting(self.__category, self.__varName, self.__varType, self.name, self.default, get, set)
 
     Settings.SetOnValueChangedCallback(setting.variable, function(_, setting, value)
         -- NOTE: This event notifies controls when a setting's value changes.  
@@ -128,11 +141,14 @@ function Template:RegisterControlSetting()
 end
 
 function Template:InitializeControl(controlTemplate)
-    local parent = self:GetParentInfo()
+    C:IsString(controlTemplate, 2)
+
     local setting = self:RegisterControlSetting()
     local initializer = Settings.CreateControlInitializer(controlTemplate, setting, self.options, self.tooltip)
 
-    parent.layout:AddInitializer(initializer)
+    C:Ensures(type(self.__layout) == "table", L["TEMPLATE_FIELD_IS_INVALID"], "__layout", self.name)
+
+    self.__layout:AddInitializer(initializer)
 end
 
 -- [[ Library API ]]
@@ -140,47 +156,47 @@ end
 do
     local function CreateTypeInfo(kind, registry, name, version)
         C:Ensures(not registry[name] or registry[name].version == version, L["ALREADY_REGISTERED"], kind, name, version)
-    
+
         local typeInfo = {
             version = version
         }
-    
+
         registry[name] = typeInfo
-    
+
         return typeInfo
     end
-    
+
     local function GetTypeVersion(registry, name)
         return registry[name] and registry[name].version or 0
     end
-    
+
     function lib:RegisterControl(name, version, ctor)
         C:IsString(name, 2)
         C:IsNumber(version, 3)
         C:IsFunction(ctor, 4)
-    
+
         local controlInfo = CreateTypeInfo("control", self.Controls, name, version)
         controlInfo.constructor = ctor
     end
-    
+
     function lib:GetControlVersion(name)
         C:IsString(name, 2)
-    
+
         return GetTypeVersion(self.Controls, name)
     end
-    
+
     function lib:RegisterStyle(name, version, transformer)
         C:IsString(name, 2)
         C:IsNumber(version, 3)
         C:IsFunction(transformer, 4)
-    
+
         local styleInfo = CreateTypeInfo("style", self.Styles, name, version)
         styleInfo.transformer = transformer
     end
-    
+
     function lib:GetStyleVersion(name)
         C:IsString(name, 2)
-    
+
         return GetTypeVersion(self.Styles, name)
     end
 end
@@ -232,25 +248,19 @@ do
         for propName, propType in pairs(schema) do
             local propValue = template[propName]
 
-            C:Ensures(IsValueMatchTypes(propValue, propType), L["TEMPLATE_FIELD_IS_MISSING_OR_NIL"], template:GetIndex(), propName, propType)
+            C:Ensures(IsValueMatchTypes(propValue, propType), L["TEMPLATE_FIELD_IS_MISSING_OR_NIL"], template.__index, propName, propType)
         end
     end
 end
 
 do
-    local function GenerateVariableName(name)
-        return (name:gsub("([A-Za-z0-9])([A-Za-z0-9]*)", function(first, rest)
-            return first:upper() .. rest:lower()
-        end):gsub("%W", ""))
-    end
-
     local function ConstructControl(template)
         template = setmetatable(template, { __index = Template })
 
         if template.type ~= "spacer" then
             lib:Validate(template, lib.Schema)
         end
-        
+
         local controlInfo = lib.Controls[template.type]
 
         C:Ensures(controlInfo, L["CONTROL_IS_UNKNOWN"], template.name, template.type)
@@ -259,26 +269,20 @@ do
     end
 
     local function ConstructControls(template)
-        template.__index = template.__index or "1"
-        template.__varName = template.__varName or GenerateVariableName(template.name)
-
         ConstructControl(template)
 
-        local props = template.props
+        template:SetParentInfo()
 
-        if type(props) == "function" then
-            local tbl = {}
-            props(tbl)
-            props = tbl
+        local props = template.props or {}
+
+        if type(template.init) == "function" then
+            template.init(props)
         end
 
-        if type(props) == "table" then
-            for index, t in ipairs(props) do
-                t.__parent = template
-                t.__index = template.__index .. ":" .. index
-                t.__varName = template.__varName .. "_" .. GenerateVariableName(t.name)
-                ConstructControls(t)
-            end
+        for index, t in ipairs(props) do
+            template:SetChildInfo(index, t)
+
+            ConstructControls(t)
         end
     end
 

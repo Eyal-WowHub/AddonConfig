@@ -42,7 +42,8 @@ local function Transformer(template)
             name = field.name,
             type = "vertical-layout",
             handler = field.handler,
-            props = field.layout
+            props = type(field.layout) == "table" and field.layout or nil,
+            init = type(field.layout) == "function" and field.layout or nil
         })
     end
 

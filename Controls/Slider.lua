@@ -14,7 +14,6 @@ local Schema = {
 local function Constructor(template)
     template:Validate(Schema)
 
-    local parent = template:GetParentInfo()
     local setting = template:RegisterControlSetting()
     local options = Settings.CreateSliderOptions(
         template.options.min,
@@ -35,7 +34,7 @@ local function Constructor(template)
         options:SetLabelFormatter(labelType, labelFormatter)
     end
 
-    Settings.CreateSlider(parent.category, setting, options)
+    Settings.CreateSlider(template.__category, setting, options)
 end
 
 lib:RegisterControl(Name, Version, Constructor)
