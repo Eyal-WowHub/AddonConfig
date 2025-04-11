@@ -267,7 +267,9 @@ do
         local props = template.props
 
         if type(props) == "function" then
-            props = props({})
+            local tbl = {}
+            props(tbl)
+            props = tbl
         end
 
         if type(props) == "table" then
