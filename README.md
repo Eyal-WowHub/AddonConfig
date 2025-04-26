@@ -4,6 +4,8 @@ A library that generates addon settings from a template.
 
 #### Dependencies: [LibStub](https://www.curseforge.com/wow/addons/libstub), [Contracts](https://github.com/Eyal-WowHub/Contracts)
 
+#### Used By: [WowInfo_Options](https://github.com/Eyal-WowHub/WowInfo_Options)
+
 ### Examples:
 
 ```lua
